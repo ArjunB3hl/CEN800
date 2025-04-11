@@ -1,0 +1,26 @@
+
+# .gitignore
+# Node.js dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+logs/
+
+# Build output directory (if applicable)
+dist/
+build/
+
+# OS generated files
+.DS_Store
+
+# Editor directories and files (optional)
+.vscode/
+.idea/
+
+# Temporary files
+tmp/
+temp/

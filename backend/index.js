@@ -51,6 +51,7 @@ const port = 3001; // Port for the backend server
 
 // Enable CORS for requests from the frontend (adjust origin if needed)
 app.use(cors({ origin: 'http://localhost:5173' })); // Assuming Vite runs on 5173
+app.use(express.json());
 
 // Ensure the uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -119,7 +120,7 @@ async function deleteFilesFromAI() {
 
 }
 // Call the clearUploadsFolder function to delete files from the local uploads directory
-const result = clearUploadsFolder();
+/*const result = clearUploadsFolder();
 if (result.success) {
   console.log('Uploads folder cleared successfully');
 } else {
@@ -130,6 +131,7 @@ if (result.success) {
 deleteFilesFromAI()
   .then(() => console.log('Files deleted from Google GenAI'))
   .catch((error) => console.error('Error deleting files from Google GenAI:', error));
+  */
 
 // Add an endpoint to trigger the file cleanup
 app.delete('/uploads', (req, res) => {
@@ -142,8 +144,30 @@ app.delete('/uploads', (req, res) => {
 });
 
 
-// POST endpoint for multiple file uploads
-app.post('/upload', upload.array('files', 10), async (req, res) => {
+// Middleware to clear uploads directory before handling new file uploads
+const clearUploadsMiddleware = async (req, res, next) => {
+  try {
+    const result = await clearUploadsFolder();
+    console.log('Uploads folder cleared via middleware:', result);
+    
+    // Also clear Gemini AI files
+    try {
+      await deleteFilesFromAI();
+      console.log('Gemini AI files cleared via middleware');
+    } catch (error) {
+      console.error('Error clearing Gemini AI files:', error);
+      // Continue anyway - don't block the upload
+    }
+    
+    next(); // Continue to the next middleware/handler
+  } catch (error) {
+    console.error('Error in clearUploadsMiddleware:', error);
+    return res.status(500).json({ error: 'Failed to clear uploads directory' });
+  }
+};
+
+// POST endpoint for multiple file uploads - now with middleware
+app.post('/upload', clearUploadsMiddleware, upload.array('files', 10), async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send({ message: 'No files uploaded.' });
   }
@@ -167,35 +191,82 @@ app.post('/upload', upload.array('files', 10), async (req, res) => {
 
   }
 
-  const prompt = `List many multiple choice questions using this JSON schema:
+  const prompt1 = `List many multiple choice questions using this JSON schema:
 
   MultipleChoice = {'question': string, 'options': Array<string>, 'answer': string}
   Return: Array<MultipleChoice>`;
   
+  const prompt2 = `List many questions and answers that involve reasoning, problem solving and thinking using this JSON schema:
 
+  QuestionAnswer= {'question': string, 'answer': string}
+  Return: Array<QuestionAnswer>`;
  
   
 
 
-const response = await client.models.generateContent({
+const response1 = await client.models.generateContent({
   model: "gemini-2.5-pro-preview-03-25",
   contents: createUserContent(
     
     [
       ...myfiles,
-    prompt,
+    prompt1,
+  ]
+
+),
+});
+const response2 = await client.models.generateContent({
+  model: "gemini-2.5-pro-preview-03-25",
+  contents: createUserContent(
+    
+    [
+      ...myfiles,
+    prompt2,
   ]
 
 ),
 });
 
-  console.log('Response from Google GenAI:', response.text);
+  console.log('Response from Google GenAI:', response2.text);
   
+  // Parse the response text to extract MCQ data
+  let mcqData = [];
+  try {
+    // The response might be JSON or have JSON embedded in text
+    // Try direct parsing first
+    const responseText = response1.text;
+    
+    // Look for an array pattern in the response
+    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      mcqData = JSON.parse(jsonMatch[0]);
+    } else {
+      console.log('Could not extract JSON array from response');
+    }
+  } catch (error) {
+    console.error('Error parsing MCQ data:', error);
+  }
 
+  // Parse the question answers
+  let questionAnswerData = [];
+  try {
+    // The response might be JSON or have JSON embedded in text
+    // Try direct parsing first
+    const responseText = response2.text;
+    
+    // Look for an array pattern in the response
+    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      questionAnswerData = JSON.parse(jsonMatch[0]);
+    } else {
+      console.log('Could not extract JSON array from response');
+    }
+  } catch (error) {
+    console.error('Error parsing question answer data:', error);
+  }
 
   
-  // Here you would typically store metadata about the files (e.g., in a database)
-  // For now, we just confirm receipt
+  // Send both file metadata and MCQ data to frontend
   res.status(200).send({
     message: `${req.files.length} file(s) uploaded successfully!`,
     files: req.files.map(file => ({
@@ -203,10 +274,61 @@ const response = await client.models.generateContent({
       originalName: file.originalname,
       path: file.path,
       size: file.size
-    }))
+    })),
+    mcqData: mcqData,
+    questionAnswerData: questionAnswerData,
   });
 
 }); 
+
+// Check if the answer is correct
+
+app.post('/check-answer', async (req, res) => {
+  const { question, userAnswer, correctAnswer } = req.body;
+  
+  if (!question || !userAnswer) {
+    return res.status(400).send({ error: 'Question and user answer are required' });
+  }
+  
+  const prompt = `The user was given this question: "${question}"
+  
+User's answer: "${userAnswer}"
+Correct answer: "${correctAnswer}"
+
+Evaluate if the user's answer is correct using the following JSON schema:
+{'Correct': boolean, 'Judgement': string}
+
+The 'Correct' field should be true if the user's answer is semantically correct, even if the wording is different.
+The 'Judgement' field should provide a brief explanation of why the answer is correct or incorrect.
+
+Return the result as valid JSON.`;
+
+  try {
+    const response = await client.models.generateContent({
+      model: "gemini-2.5-pro-preview-03-25",
+      contents: createUserContent([prompt]),
+    });
+    
+    console.log('Answer evaluation response:', response.text);
+    
+    // Parse the response to extract the judgment
+    let judgment = { Correct: false, Judgement: "Could not evaluate answer" };
+    try {
+      // Try to extract JSON from the response
+      const jsonMatch = response.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        judgment = JSON.parse(jsonMatch[0]);
+      }
+    } catch (error) {
+      console.error('Error parsing judgment data:', error);
+    }
+    
+    res.status(200).send(judgment);
+  } catch (error) {
+    console.error('Error evaluating answer:', error);
+    res.status(500).send({ error: 'Error evaluating answer', details: error.message });
+  }
+});
   
 
 

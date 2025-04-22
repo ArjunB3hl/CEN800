@@ -20,8 +20,8 @@ function App() {
         
         <div className="right-panel">
             <>
-            <h1 className="title">ELE 888</h1>
-             <p className="subtitle">Dive into the exciting world of machine learning and AI! In this course, you'll explore neural networks, pattern recognition, and clustering algorithms through engaging lectures and hands-on projects. No textbook needed—all materials are provided to help you build your own intelligent systems from the ground up!</p>
+            <h1 className="title">CEN 800</h1>
+            <p className="subtitle">Explore the essential principles of laws and ethics within the engineering profession. This course covers professional responsibilities, ethical decision-making, sustainability, and real-world case studies. All materials are provided to guide your understanding of the legal and ethical landscape of engineering.</p>
              {/* Add links to course content and exam pages */}
              <div className="button-container"> {/* Added container for buttons */}
                <Link to="/course" className="course-link-button">Go to Course Content</Link>

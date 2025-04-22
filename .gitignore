@@ -24,3 +24,13 @@ build/
 # Temporary files
 tmp/
 temp/
+
+
+// ...existing code...
+/backend/video/
+/backend/audio/
+/backend/images/
+backend/uploads/
+backend/CSV/
+
+*.json

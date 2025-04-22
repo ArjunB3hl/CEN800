@@ -45,7 +45,7 @@ const filesInUploads = fs.readdirSync(uploadsDir);
             savePath: saveDir,
             format: "png",          // use lossless PNG or set "jpeg"
             quality: 100, 
-            width: 3200,           // set image width
+            width: 2000,           // set image width
             height: 2600,          // set image height
           };
 

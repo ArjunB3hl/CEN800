@@ -22,11 +22,11 @@ import {Storage} from '@google-cloud/storage';
 
 
 const storage = new Storage({
-    keyFilename: path.join(__dirname, ".." ,'ele888-441ef279cf14.json'), // path to your downloaded JSON key
+    keyFilename: path.join(__dirname, ".." ,'cen800-39e49721ec16.json'), // path to your downloaded JSON key
   });
   
-const bucketName = 'ele888-bucket';
-
+const bucketName = 'cen800';
+/*
 // Read all files from the uploads directory
 const filesInUploads = fs.readdirSync(uploadsDir);
 
@@ -41,27 +41,7 @@ const sanitizedpdfFiles = pdfFiles.map(file => {
 });
 
 
-/**
- * Gemini sometimes emits LaTeX back‑slashes that are not valid JSON
- * escapes (e.g. “\lambda”).  This doubles every back‑slash that is
- * *not* already a legal JSON escape so JSON.parse will not choke.
- */
-
-
-function sanitizeJsonString(raw) {
-  return raw
-    /* 1 ─ double every "\" that isn’t already a valid JSON escape  */
-    .replace(/\\(?![\\/"bfnrtu])/g, '\\\\')
-    /* 2 ─ strip the two JS line‑separator chars that JSON forbids  */
-    .replace(/\u2028|\u2029/g, '')
-    /* 3 ─ escape real control characters inside the text           */
-    .replace(/\r/g, '\\r')
-    .replace(/\n/g, '\\n')      // do \r first so we don’t double‑escape
-    .replace(/\t/g, '\\t');
-}
-
-
-// let McqArr = [];
+let McqArr = [];
 let QAsArr = [];
 console.log(`Found ${sanitizedpdfFiles.length} PDF files to process in ${uploadsDir}`);
 
@@ -93,140 +73,231 @@ for( const file of sanitizedpdfFiles) {
     file: filename,
     config: { mimeType: "application/pdf" },
   });
-//   const prompt = `Looking at the content of the pdf generate.
-//   List as many as possible multiple choice questions related to machine learning.
-//   Multiple choice questions as a JSON object with the following schema:
-//   MCQs = {'question': string,  'options': Array<string>, 'answer': string}
-//   Return: Array<MCQs>`;
+  const prompt = `Looking at the content of the pdf generate.
+  List as many as possible multiple choice questions related to the contents of pdf.
+`;
   
   
   
+const response = await client.models.generateContent({
+  model: "gemini-2.5-pro-preview-03-25",
+  contents: createUserContent(
+    [
+      createPartFromUri(myfile.uri, myfile.mimeType),
+    prompt,
+  ]
 
+),
+config: {
+  responseMimeType: 'application/json',
+  responseSchema: {
+      type: Type.ARRAY, // Expecting an array of MCQs
+      items: {
+          type: Type.OBJECT, // Each item in the array is an object
+          properties: { // Define the properties of each MCQ object
+              'question': {
+                  type: Type.STRING,
+                  description: 'The multiple-choice question text',
+                  nullable: false,
+              },
+              'options':  {
+                  type: Type.ARRAY, // Options is an array of strings
+                  items: {
+                      type: Type.STRING,
+                      description: 'A possible answer choice',
+                      nullable: false,
+                  },
+                  description: 'An array of 4 possible answer choices (A, B, C, D)', // Added more description
+                  nullable: false,
+              },
+              // 'answer' should be a direct property here, not inside 'options'
+              'answer': {
+                  type: Type.STRING,
+                  description: 'The correct answer string (should match one of the options)',
+                  nullable: false,
+              },
+          }, // End of properties object
+          // 'required' should be here, sibling to 'type' and 'properties'
+          required: ['question', 'options', 'answer'],
+      }, // End of items object
+  }, // End of responseSchema
+} // End of config
 
-// const response = await client.models.generateContent({
-//   model: "gemini-2.5-pro-preview-03-25",
-//   contents: createUserContent(
-//     [
-//       createPartFromUri(myfile.uri, myfile.mimeType),
-//     prompt,
-//   ]
+});
 
-// ),
-// });
+const prompt2 = `You are an expert AI tutor. The content of a PDF document is provided below:
 
-const prompt2 = `All the pdfs are provided with problem solving question. Identify that question and then generate questions similar to that calibar and also provide solutions for them. 
-    List as many as possible question answers Related to machine learning.
-    Make sure that the equations are in latex format for both questions and answers.
-    `;
+<<PDF_CONTENT>>
+
+1. Carefully read and understand the key concepts, definitions, and processes described in the PDF.
+2. Create a realistic, real‑world scenario or case study that applies at least three of these concepts in practice.
+3. Based on that scenario, generate five multiple‑choice questions that test comprehension and application of the PDF’s content. For each question:
+   - Provide a clear question stem.
+   - Give four answer choices labeled A, B, C, and D.
+   - Indicate which choice is correct.
+   - Include a brief explanation of why that answer is correct.
+
+Format your response like this:
+
+Scenario:
+<Your narrative case study here>
+
+Questions:
+1. <Question 1 stem>
+   A. <Option A>
+   B. <Option B>
+   C. <Option C>
+   D. <Option D>
+   Correct Answer: <A/B/C/D>
+
+…repeat for questions 2 through 5.
+`;
   
 
  
 
    // Get the text content from the response
-  //  const responseText = response.text; // Assuming response.text contains the JSON string
-  //  console.log('Raw Response from Google GenAI:', responseText);
+  const responseText = response.text; // Assuming response.text contains the JSON string
+  console.log('Raw Response from Google GenAI for response1:', responseText);
    
-   const response2 = await client.models.generateContent({
+  const response2 = await client.models.generateContent({
     model: "gemini-2.5-pro-preview-03-25",
     contents: createUserContent(
-      
       [
         createPartFromUri(myfile.uri, myfile.mimeType),
-      prompt2,
-    ]
-    
-  
-  ),
-  config: {
-    responseMimeType: 'application/json',
-    responseSchema: {
-        type: Type.ARRAY,
-        items: {
-            type: Type.OBJECT,
-            properties: {
-                'question': {
-                    type: Type.STRING,
-                    description: 'The question to be answered',
-                    nullable: false,
-                },
-                'answer': {
-                    type: Type.STRING,
-                    description: 'The answer to the question',
-                    nullable: false,
-                },
-            },
-            required: ['question', 'answer'],
-
-        },
-    },
-},
+        prompt2,
+      ]
+    ),
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+          type: Type.OBJECT, // Top level is an object
+          properties: { // Properties of the top-level object
+              'scenario': {
+                  type: Type.STRING,
+                  description: 'The case study or scenario',
+                  nullable: false,
+              },
+              'questions': {
+                  type: Type.ARRAY, // 'questions' is an array
+                  items: { // Define the structure of each item in the 'questions' array
+                      type: Type.OBJECT,
+                      properties: {
+                          'question': {
+                              type: Type.STRING,
+                              description: 'The question text', // Changed description slightly
+                              nullable: false,
+                          },
+                          'options':  {
+                              type: Type.ARRAY,
+                              items: {
+                                  type: Type.STRING,
+                                  description: 'A possible answer choice', // Changed description
+                                  nullable: false,
+                              },
+                              description: 'An array of 4 answer choices', // Changed description
+                              nullable: false,
+                          },
+                          // 'answer' should be a direct property of the question object
+                          'answer': {
+                              type: Type.STRING,
+                              description: 'The correct answer choice', // Changed description
+                              nullable: false,
+                          },
+                      }, // End of properties for question object
+                      // Required properties for each question object
+                      required: ['question', 'options', 'answer'],
+                  }, // End of items definition for questions array
+              }, // End of 'questions' property definition
+          }, // End of properties for top-level object
+          // 'required' for the top-level object should be here
+          required: ['scenario', 'questions'],
+      }, // End of responseSchema
+    }, // End of config
   });
+  
    const responseText2 = response2.text; // Assuming response.text contains the JSON string
-    console.log('Raw Response from Google GenAI:', responseText2);
+    console.log('Raw Response from Google GenAI: for response 2', responseText2);
  
-  //  let Mcqs = null; // Declare slides outside the try block
+
     
    try {
-     // Attempt to extract JSON from within Markdown code blocks
-    //  let jsonString = responseText;
-    //  const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/); // Regex to find ```json ... ```
-    //  if (jsonMatch && jsonMatch[1]) {
-    //    // If found, use the content inside the fences
-    //    jsonString = jsonMatch[1].trim();
-    //    console.log('Extracted JSON string:', jsonString);
-    //  } else {
-    //    // Fallback: If no fences found, try trimming the whole response
-    //    // This might help if there's just leading/trailing whitespace
-    //    jsonString = responseText.trim();
-    //    console.log('No JSON fences found, attempting to parse trimmed response.');
-    //  }
- 
-    //  // Parse the extracted (or trimmed) JSON string
-    //  Mcqs = JSON.parse(jsonString);
- 
-    //  // Check if the parsed result is an array
-    //  if (Array.isArray(Mcqs)) {
-    //    console.log("\n--- Parsed MCQs Data ---");
-       
-    //  } else {
-    //    console.error("Parsed response is not an array:", Mcqs);
-    //    slides = null; // Reset slides if parsing didn't result in an array
-    //  }
-     
-    //  McqArr.push(...Mcqs);
-
+    let Mcqs = null; 
     
+    if(responseText)  { // Ensure the response text is not empty
+      // Explicitly parse the JSON string
+      const parsedJson = JSON.parse(responseText);
+      // Assign the parsed object/array to Mcqs
+      Mcqs = parsedJson;
+      // Check if the parsed result is an array 
+      if (Array.isArray(Mcqs)) {
+        console.log("\n--- Parsed Slide Data ---");
+        // Note: The order of keys ('answer', 'question') within each object
+        // in the array is not guaranteed by JSON format, but the data is correct.
+      } else {
+        console.error("Parsed response is not an array:", Mcqs);
+        Mcqs = null; // Reset slides if parsing didn't result in an array
+      }
+    }
+    else {
+      console.error("Received empty response text for Mcqs.");
+      Mcqs = null;
+    }
 
-     // Parse the extracted JSON string after sanitizing
-     const responseText2 = response2.text; // Get the JSON string
-     console.log('Raw Response from Google GenAI (QAs):', responseText2);
+    if (Mcqs) { // Only push if Mcqs is a valid array
+      McqArr.push(...Mcqs);
+    }
+    
 
      let QAs = null; // Initialize QAs
 
      if (responseText2) { // Ensure the response text is not empty
-       // Explicitly parse the JSON string
        const parsedJson = JSON.parse(responseText2);
 
-       // Assign the parsed object/array to QAs
-       QAs = parsedJson;
+       // Validate the structure: must be an object with scenario (string) and questions (array)
+       if (
+         typeof parsedJson === 'object' &&
+         parsedJson !== null &&
+         typeof parsedJson.scenario === 'string' &&
+         Array.isArray(parsedJson.questions)
+       ) {
+         const scenario = parsedJson.scenario;
+         const questionsArray = parsedJson.questions; // Get the original questions array
 
-       // Check if the parsed result is an array
-       if (Array.isArray(QAs)) {
-         console.log("\n--- Parsed question and answer Data ---");
-         // Note: The order of keys ('answer', 'question') within each object
-         // in the array is not guaranteed by JSON format, but the data is correct.
+         // Check if there are any questions to modify
+         if (questionsArray.length > 0) {
+           // Prepend the scenario to the first question's text
+           // Ensure the first question object and its question property exist
+           if (questionsArray[0] && typeof questionsArray[0].question === 'string') {
+             questionsArray[0].question = `Scenario:\n${scenario}\n\nQuestion:\n${questionsArray[0].question}`;
+             console.log("\n--- Prepended scenario to the first question ---");
+           } else {
+             console.warn("First question object or its 'question' property is invalid. Cannot prepend scenario.");
+           }
+         } else {
+           console.warn("Received empty questions array. Cannot prepend scenario.");
+         }
+
+         // Assign the potentially modified questions array to QAs
+         QAs = questionsArray;
+
        } else {
-         console.error("Parsed response is not an array:", QAs);
-         QAs = null; // Reset QAs if parsing didn't result in an array
+         console.error("Parsed response for response2 is not the expected object structure ({scenario: string, questions: array}):", parsedJson);
+         QAs = null; // Reset QAs if structure is wrong
        }
      } else {
-        console.error("Received empty response text for QAs.");
+        console.error("Received empty response text for response2.");
         QAs = null;
      }
 
-     if (QAs) { // Only push if QAs is a valid array
-        QAsArr.push(...QAs);
+     if (QAs && Array.isArray(QAs)) { // Ensure QAs is a valid array before pushing
+        // Now push the modified questions array (which includes the scenario in the first question)
+        QAsArr.push(QAs);
+     } else if (QAs) {
+        // This case handles if QAs was assigned but wasn't an array (shouldn't happen with current logic, but good practice)
+        console.error("Processed QAs data is not an array:", QAs);
      }
+
 
 
 
@@ -245,11 +316,11 @@ const prompt2 = `All the pdfs are provided with problem solving question. Identi
   const json2csvParser = new Parser();
   let csv = null;
   let csvFilePath = null;
-  //  csv = json2csvParser.parse(McqArr);
-  // // Write the CSV to a file
-  // csvFilePath = path.join(__dirname, "..", 'CSV/mcqs.csv');
-  // fs.writeFileSync(csvFilePath, csv);
-  // console.log(`CSV file created at: ${csvFilePath}`);
+   csv = json2csvParser.parse(McqArr);
+  // Write the CSV to a file
+  csvFilePath = path.join(__dirname, "..", 'CSV/mcqs.csv');
+  fs.writeFileSync(csvFilePath, csv);
+  console.log(`CSV file created at: ${csvFilePath}`);
 
    csv = json2csvParser.parse(QAsArr);
   // Write the CSV to a file
@@ -257,6 +328,7 @@ const prompt2 = `All the pdfs are provided with problem solving question. Identi
   fs.writeFileSync(csvFilePath, csv);
   console.log(`CSV file created at: ${csvFilePath}`);
   // Upload the CSV file to Google Cloud Storage
+  */
   const csvDir = path.join(__dirname, "..", 'CSV');
   const csvFiles = fs.readdirSync(csvDir).filter(file => file.endsWith('.csv'));
   for (const csvFile of csvFiles) {

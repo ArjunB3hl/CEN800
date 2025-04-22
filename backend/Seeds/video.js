@@ -11,101 +11,101 @@ import {Storage} from '@google-cloud/storage';
 
 
 const storage = new Storage({
-    keyFilename: path.join(__dirname, ".." ,'ele888-441ef279cf14.json'), // path to your downloaded JSON key
+    keyFilename: path.join(__dirname, ".." ,'cen800-39e49721ec16.json'), // path to your downloaded JSON key
   });
   
-const bucketName = 'ele888-bucket';
-// // Set ffmpeg and ffprobe paths
-// ffmpeg.setFfmpegPath(ffmpegStatic);
-// ffmpeg.setFfprobePath(ffprobeStatic.path);
+const bucketName = 'cen800'; // replace with your bucket name
+// Set ffmpeg and ffprobe paths
+ffmpeg.setFfmpegPath(ffmpegStatic);
+ffmpeg.setFfprobePath(ffprobeStatic.path);
 
-// const audioDir = path.join(__dirname, '..', 'audio');
-// const imageDir = path.join(__dirname, '..', 'images');
+const audioDir = path.join(__dirname, '..', 'audio');
+const imageDir = path.join(__dirname, '..', 'images');
 const videoDir = path.join(__dirname, '..','video');
 
-// // Ensure video directory exists
-// if (!fs.existsSync(videoDir)) {
-//   fs.mkdirSync(videoDir);
-// }
+// Ensure video directory exists
+if (!fs.existsSync(videoDir)) {
+  fs.mkdirSync(videoDir);
+}
 
-// async function getAudioDuration(audioPath) {
-//   return new Promise((resolve, reject) => {
-//     const args = [
-//       '-v', 'error',
-//       '-show_entries', 'format=duration',
-//       '-of', 'default=noprint_wrappers=1:nokey=1',
-//       audioPath
-//     ];
-//     execFile(ffprobeStatic.path, args, (error, stdout) => {
-//       if (error) return reject(error);
-//       const duration = parseFloat(stdout.trim());
-//       if (isNaN(duration)) return reject(new Error('Failed to parse duration'));
-//       resolve(duration);
-//     });
-//   });
-// }
+async function getAudioDuration(audioPath) {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '-v', 'error',
+      '-show_entries', 'format=duration',
+      '-of', 'default=noprint_wrappers=1:nokey=1',
+      audioPath
+    ];
+    execFile(ffprobeStatic.path, args, (error, stdout) => {
+      if (error) return reject(error);
+      const duration = parseFloat(stdout.trim());
+      if (isNaN(duration)) return reject(new Error('Failed to parse duration'));
+      resolve(duration);
+    });
+  });
+}
 
-// async function processAll() {
-//   const audioFiles = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
-//   const imageFiles = fs.readdirSync(imageDir).filter(f => /\.(jpeg|jpg|png)$/i.test(f));
+async function processAll() {
+  const audioFiles = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
+  const imageFiles = fs.readdirSync(imageDir).filter(f => /\.(jpeg|jpg|png)$/i.test(f));
 
-//   // Regex to extract base and page from audio: (Lecture 5 (SSL)1 (1)_part_1.pdf)_1.mp3
-//   const audioRegex = /^(.*\.pdf)_(\d+)\.mp3$/;
+  // Regex to extract base and page from audio: (Lecture 5 (SSL)1 (1)_part_1.pdf)_1.mp3
+  const audioRegex = /^(.*\.pdf)_(\d+)\.mp3$/;
 
-//   for (const audioFile of audioFiles) {
-//     const match = audioFile.match(audioRegex);
-//     if (!match) continue;
-//     const [_, basePdf, pageNum] = match;
-//     // Image pattern: images/Lecture 5 (SSL)1 (1)_part_1.pdf.1.jpeg
-//     // So look for: basePdf + '.' + pageNum + .jpeg
-//     const imagePattern = new RegExp('^' + basePdf.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\.' + pageNum + '\\.(jpeg|jpg|png)$');
-//     const imageFile = imageFiles.find(f => imagePattern.test(f));
-//     if (!imageFile) {
-//       console.warn(`No matching image for audio: ${audioFile}`);
-//       continue;
-//     }
+  for (const audioFile of audioFiles) {
+    const match = audioFile.match(audioRegex);
+    if (!match) continue;
+    const [_, basePdf, pageNum] = match;
+    // Image pattern: images/Lecture 5 (SSL)1 (1)_part_1.pdf.1.jpeg
+    // So look for: basePdf + '.' + pageNum + .jpeg
+    const imagePattern = new RegExp('^' + basePdf.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\.' + pageNum + '\\.(jpeg|jpg|png)$');
+    const imageFile = imageFiles.find(f => imagePattern.test(f));
+    if (!imageFile) {
+      console.warn(`No matching image for audio: ${audioFile}`);
+      continue;
+    }
 
-//     const audioPath = path.join(audioDir, audioFile);
-//     const imagePath = path.join(imageDir, imageFile);
-//     const videoPath = path.join(videoDir, audioFile.replace(/\.mp3$/, '.mp4'));
+    const audioPath = path.join(audioDir, audioFile);
+    const imagePath = path.join(imageDir, imageFile);
+    const videoPath = path.join(videoDir, audioFile.replace(/\.mp3$/, '.mp4'));
 
-//     let audioDuration;
-//     try {
-//       audioDuration = await getAudioDuration(audioPath);
-//     } catch (e) {
-//       console.error(`Failed to get duration for ${audioFile}:`, e);
-//       continue;
-//     }
+    let audioDuration;
+    try {
+      audioDuration = await getAudioDuration(audioPath);
+    } catch (e) {
+      console.error(`Failed to get duration for ${audioFile}:`, e);
+      continue;
+    }
 
-//     await new Promise((resolve, reject) => {
-//       ffmpeg()
-//         .input(imagePath)
-//         .loop()
-//         .input(audioPath)
-//         .duration(audioDuration)
-//         .outputOptions([
-//           '-c:v libx264',
-//           '-tune stillimage',
-//           '-c:a aac',
-//           '-b:a 192k',
-//           '-pix_fmt yuv420p'
-//         ])
-//         .output(videoPath)
-//         .on('start', cmd => console.log(`FFmpeg: ${cmd}`))
-//         .on('end', () => {
-//           console.log(`✅ Created video: ${videoPath}`);
-//           resolve();
-//         })
-//         .on('error', err => {
-//           console.error(`❌ Error for ${audioFile}:`, err);
-//           reject(err);
-//         })
-//         .run();
-//     });
-//   }
-// }
+    await new Promise((resolve, reject) => {
+      ffmpeg()
+        .input(imagePath)
+        .loop()
+        .input(audioPath)
+        .duration(audioDuration)
+        .outputOptions([
+          '-c:v libx264',
+          '-tune stillimage',
+          '-c:a aac',
+          '-b:a 192k',
+          '-pix_fmt yuv420p'
+        ])
+        .output(videoPath)
+        .on('start', cmd => console.log(`FFmpeg: ${cmd}`))
+        .on('end', () => {
+          console.log(`✅ Created video: ${videoPath}`);
+          resolve();
+        })
+        .on('error', err => {
+          console.error(`❌ Error for ${audioFile}:`, err);
+          reject(err);
+        })
+        .run();
+    });
+  }
+}
 
-// processAll();
+processAll();
 
 const videoFiles = fs.readdirSync(videoDir).filter(file => file.endsWith('.mp4'));
 

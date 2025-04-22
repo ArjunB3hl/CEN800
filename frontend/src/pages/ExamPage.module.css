@@ -1,0 +1,698 @@
+.examContainer {
+  display: flex;
+  height: calc(100vh - 80px);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif; /* Match App.css font */
+  padding: 2rem;
+  gap: 1.5rem;
+  background-color: var(--bg-darker); /* Use App.css dark background */
+  box-sizing: border-box;
+  color: var(--text-light);
+}
+
+.navigationPanel {
+  width: 350px; /* Fixed width */
+ 
+  padding: 1.5rem;
+  background: rgba(30, 41, 59, 0.7); /* Match App.css panel background */
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  overflow-y: auto; /* Allow scrolling if needed */
+  border-radius: var(--border-radius);
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  border: 1px solid var(--card-border);
+}
+
+.navigationPanel h2 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+  background: linear-gradient(45deg, var(--primary-light), var(--secondary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.navGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Fixed 5 columns for better layout */
+  gap: 0.8rem;
+}
+
+.navButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 33/28; /* Square buttons */
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  background-color: rgba(255, 255, 255, 0.03); /* Same as options */
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  /* Neumorphic button */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+}
+
+.navButton:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px) translateX(2px); /* Slight lift */
+  border-color: var(--primary-color);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* State: Answered but not yet evaluated */
+.navButton.answered {
+  background-color: rgba(255, 255, 255, 0.08); /* Slightly different background */
+  border-color: rgba(255, 255, 255, 0.3); /* Subtle border */
+  color: #a5b4fc; /* Light purple to indicate answered */
+}
+.navButton.answered:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary-color);
+}
+
+/* State: Evaluated and Correct */
+.navButton.correctAnswer {
+  background-color: rgba(16, 185, 129, 0.15); /* Success background */
+  color: var(--success-color);
+  border-color: var(--success-color);
+}
+.navButton.correctAnswer:hover {
+  background-color: rgba(16, 185, 129, 0.25);
+}
+
+/* State: Evaluated and Incorrect */
+.navButton.incorrectAnswer {
+  background-color: rgba(239, 68, 68, 0.15); /* Danger background */
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+.navButton.incorrectAnswer:hover {
+  background-color: rgba(239, 68, 68, 0.25);
+}
+
+/* State: Active (Overrides other states visually for background/color, but keeps border) */
+.navButton.active {
+  background-color: rgba(124, 58, 237, 0.1); /* Active background */
+  color: var(--primary-light); /* Active color */
+  border-color: var(--primary-color); /* Default active border */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+.navButton.active:hover {
+   /* Keep active style on hover */
+  background-color: rgba(124, 58, 237, 0.15);
+  transform: translateY(1px); /* Maintain inset look */
+}
+
+/* Specific borders for active + evaluated states */
+.navButton.active.correctAnswer {
+  border-color: var(--success-color); /* Green border when active and correct */
+}
+.navButton.active.incorrectAnswer {
+  border-color: var(--danger-color); /* Red border when active and incorrect */
+}
+/* Keep the subtle border for active + answered (but not evaluated) */
+.navButton.active.answered {
+    border-color: rgba(255, 255, 255, 0.3); /* Use the answered border color */
+}
+
+.questionPanel {
+  flex: 1;
+  width: 800px; /* Fixed width */
+  padding: 2rem;
+  background: rgba(30, 41, 59, 0.7); /* Match App.css panel background */
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  border-radius: var(--border-radius);
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  border: 1px solid var(--card-border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto; /* Center if screen is very wide */
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+}
+
+.questionHeader h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  background: linear-gradient(45deg, var(--primary-light), var(--secondary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.backLink {
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-light);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+}
+
+.backLink:hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.06);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+.questionText {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--text-light);
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.optionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+}
+
+.option:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px) translateX(2px); /* Slight lift */
+  border-color: var(--primary-color);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+.option.selected {
+  background-color: rgba(124, 58, 237, 0.1);
+  border-color: var(--primary-color);
+  /* Inset shadow when selected */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+.optionLetter {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(124, 58, 237, 0.2);
+  color: var(--primary-light);
+  font-weight: 600;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.option.selected .optionLetter {
+  background-color: rgba(124, 58, 237, 0.4);
+  color: white;
+}
+
+.optionText {
+  flex: 1;
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+.qaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Math toolbar styling */
+.mathToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  margin-bottom: 0.5rem;
+}
+
+.mathToolbar button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 36px;
+  border: none;
+  border-radius: var(--border-radius);
+  background-color: rgba(124, 58, 237, 0.1);
+  color: var(--text-light);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  /* For symbols that need more width */
+  min-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 2px;
+}
+
+.mathToolbar button:hover {
+  background-color: rgba(124, 58, 237, 0.2);
+  transform: translateY(-2px);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+.mathToolbar button:active {
+  background-color: rgba(124, 58, 237, 0.3);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+/* Allow certain buttons to be wider */
+.mathToolbar button[title="Aligned Equations"],
+.mathToolbar button[title="2x2 Matrix"] {
+  width: auto;
+  min-width: 50px;
+}
+
+/* Math input textarea styling */
+.mathInput {
+
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-light);
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 120px;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transition: all 0.3s ease;
+}
+
+.mathInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow), 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+/* Math preview area styling */
+.mathPreview {
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 200px;       /* adjust as needed */
+  /* allow wrapping */
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  
+
+  /* if still too long, scroll */
+  overflow-y: auto;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  
+}
+
+
+
+.mathPreview h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Image Uploader Section Styling */
+.imageUploaderSection {
+  margin: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+}
+
+.imageUploaderSection h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--text-light);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.imageUploaderDescription {
+  margin-bottom: 1rem;
+  background-color: rgba(124, 58, 237, 0.05);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  border-left: 3px solid var(--primary-color);
+}
+
+.imageUploaderDescription p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.qaTextarea {
+  width: 100%;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-light);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 150px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+}
+
+.qaTextarea:focus {
+  outline: none;
+  border-color: transparent;
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow), 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+/* Styles for the math-field element */
+.qaMathField {
+  width: 100%;
+  resize: vertical;
+  overflow-y: auto;
+  overflow-x: hidden;     /* prevent horizontal scroll */
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-light);
+  font-size: 1.1rem; /* Adjust font size as needed */
+  min-height: 100px; /* Adjust height as needed */
+  
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  /* MathLive specific styling overrides if needed */
+  --keyboard-zindex: 100; /* Example: Ensure virtual keyboard is above other elements */
+}
+
+.qaMathField:focus, .qaMathField:focus-within { /* Use focus-within for web components */
+  outline: none;
+  border-color: transparent;
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow), 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+.qaMathField::part(content),
+.qaMathField::part(math) {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+
+.checkButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  align-self: center;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+}
+
+.checkButton:hover:not(:disabled) {
+  background-color: #0ca678; /* Darker green */
+  transform: translateY(-2px);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.checkButton:active:not(:disabled) {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+.checkButton:disabled {
+  background-color: #64748b;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  opacity: 0.7;
+}
+
+
+.feedback {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  line-height: 1.5;
+
+  overflow-x:auto;
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback.correct {
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: var(--success-color);
+}
+
+.feedback.incorrect {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: var(--danger-color);
+}
+
+.feedback span.correct {
+  color: var(--success-color);
+  font-weight: bold;
+}
+
+.feedback span.incorrect {
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.feedback p {
+  margin: 0.5rem 0;
+  text-align: left;
+}
+
+.feedback strong {
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.pagination {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+}
+
+.pagination button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), var(--glow-shadow);
+}
+
+.pagination button:active:not(:disabled) {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+.pagination button:disabled {
+  background-color: #64748b;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  opacity: 0.7;
+}
+
+/* Loading/Error states */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 80px);
+  font-size: 1.2rem;
+  color: var(--text-light);
+  background-color: var(--bg-darker);
+}
+
+/* Exam Controls (Score/Reset Buttons) in Nav Panel */
+.examControls {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scoreButton, .resetButton {
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+}
+
+.scoreButton {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.scoreButton:hover:not(:disabled) {
+  background-color: var(--secondary-dark);
+  transform: translateY(-2px);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.scoreButton:active:not(:disabled) {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+.scoreButton:disabled {
+  background-color: #64748b;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  opacity: 0.7;
+}
+
+.resetButton {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.resetButton:hover {
+  background-color: #d97706; /* Darker warning */
+  transform: translateY(-2px);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.resetButton:active {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+/* Score Display Area */
+.scoreDisplay {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(30, 41, 59, 0.8); /* Slightly darker than panel */
+  border-radius: var(--border-radius);
+  text-align: center;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+}
+
+.scoreDisplay h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--primary-light);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.scoreDisplay p {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Correctness indicators for Nav Buttons */
+.navButton.correctAnswer {
+  background-color: rgba(16, 185, 129, 0.15); /* Success background */
+  color: var(--success-color);
+  border-color: var(--success-color);
+}
+.navButton.correctAnswer:hover {
+  background-color: rgba(16, 185, 129, 0.25);
+}
+
+.navButton.incorrectAnswer {
+  background-color: rgba(239, 68, 68, 0.15); /* Danger background */
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+.navButton.incorrectAnswer:hover {
+  background-color: rgba(239, 68, 68, 0.25);
+}
+
+/* Specific borders for active + evaluated states */
+.navButton.active.correctAnswer {
+  border-color: var(--success-color); /* Green border when active and correct */
+}
+.navButton.active.incorrectAnswer {
+  border-color: var(--danger-color); /* Red border when active and incorrect */
+}

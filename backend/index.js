@@ -15,26 +15,26 @@ const csvParser = pkg;
 // Replicate __dirname functionality in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import genai from '@google/genai';
+// import genai from '@google/genai';
 
-// Destructure off the default
-const {
-  GoogleGenAI,
-  createUserContent,
-  createPartFromUri,
-  createPartFromBase64,           // ← now this is the runtime class
-} = genai;
+// // Destructure off the default
+// const {
+//   GoogleGenAI,
+//   createUserContent,
+//   createPartFromUri,
+//   createPartFromBase64,           // ← now this is the runtime class
+// } = genai;
 
 
-const client = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
+// const client = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 import {Storage} from '@google-cloud/storage';
 
 
 const storage = new Storage({
-    keyFilename: path.join(__dirname ,'ele888-441ef279cf14.json'), // path to your downloaded JSON key
+    keyFilename: path.join(__dirname ,'cen800-39e49721ec16.json'), // path to your downloaded JSON key
   });
   
-const bucketName = 'ele888-bucket';
+const bucketName = 'cen800'; // replace with your bucket name
 
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -52,21 +52,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// Configure multer for file uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 12 * 1024 * 1024, // limit file size to 12MB
-  },
-  fileFilter: (req, file, cb) => {
-    // Accept only jpeg and png files
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only JPEG and PNG files are allowed'), false);
-    }
-  }
-});
+// // Configure multer for file uploads
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: {
+//     fileSize: 12 * 1024 * 1024, // limit file size to 12MB
+//   },
+//   fileFilter: (req, file, cb) => {
+//     // Accept only jpeg and png files
+//     if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+//       cb(null, true);
+//     } else {
+//       cb(new Error('Only JPEG and PNG files are allowed'), false);
+//     }
+//   }
+// });
 
 app.get('/videos', async (req, res) => {
   console.log(`Received request for videos with query:`, req.query); // Log request
@@ -157,41 +157,66 @@ app.get('/questions', async (req, res) => {
     // --- Shuffle the loaded MCQs ---
     const shuffledMcqs = shuffleArray([...allMcqs]); // Use spread to avoid modifying the original array if needed elsewhere
 
-    // --- Select up to 30 random MCQs ---
-    const selectedMcqs = shuffledMcqs.slice(0, 30);
+    // --- Select up to 50 random MCQs ---
+    const selectedMcqs = shuffledMcqs.slice(0, 50);
 
-    // --- Load up to 5 Q&As (no change needed here unless you want random Q&As too) ---
-    const qas = [];
+  // --- Load ALL QA Rows from QAs.csv ---
+    // Each row object will look like { '0': '{...}', '1': '{...}', ... }
+    const allQaRows = [];
     await new Promise((resolve, reject) => {
       storage
         .bucket(bucketName)
-        .file('QAs.csv') // Assuming QAs.csv exists
+        .file('QAs.csv') // Load from QAs.csv
         .createReadStream()
+        // Use csvParser WITHOUT specific headers, it will use the first line ('0', '1', ...)
         .pipe(csvParser())
         .on('data', row => {
-          // Basic validation for row structure
-          if (row.question && row.answer ) {
-             qas.push({
-               question: row.question,
-               answer: row.answer
-             });
+          // Basic validation: check if the row is an object and not empty
+          if (typeof row === 'object' && row !== null && Object.keys(row).length > 0) {
+            allQaRows.push(row); // Push the entire row object
           } else {
-             console.warn('Skipping invalid Q&A row:', row);
+             console.warn('Skipping potentially empty or invalid QA row:', row);
           }
         })
         .on('end', resolve)
         .on('error', reject);
     });
 
-    // --- Shuffle the loaded QAs ---
-    const shuffledQAs = shuffleArray([...qas]); // Use spread to avoid modifying the original array if needed elsewhere
+    // --- Shuffle QA Rows ---
+    const shuffledQaRows = shuffleArray([...allQaRows]);
 
-    // --- Select up to 30 random MCQs ---
-    const selectedQAs = shuffledQAs.slice(0,5);
+    // --- Select 2 random QA Rows ---
+    const selectedQaRows = shuffledQaRows.slice(0, 2);
 
-    // --- Send to frontend ---
-    console.log(`Sending ${selectedMcqs.length} random MCQs and ${selectedQAs.length} Q&As.`);
-    res.status(200).json({ mcqs: selectedMcqs, selectedQAs }); // Send the selected random MCQs
+    // --- Parse the JSON strings from selected rows and add QAs to selectedMcqs ---
+    let addedQACount = 0;
+    for (const row of selectedQaRows) {
+      // Iterate through the values (stringified JSONs) of the row object
+      for (const qaString of Object.values(row)) {
+        try {
+          if (typeof qaString === 'string' && qaString.trim().startsWith('{')) {
+            const parsedQA = JSON.parse(qaString); // Parse the stringified QA object
+
+            // Basic validation of the parsed QA object
+            if (parsedQA && parsedQA.question && parsedQA.options && parsedQA.answer && Array.isArray(parsedQA.options)) {
+               selectedMcqs.push(parsedQA); // Add the valid QA object
+               addedQACount++;
+            } else {
+               console.warn('Parsed QA object is missing required fields or options is not an array:', parsedQA);
+            }
+          } else {
+             console.warn('Skipping non-JSON string value found in QA row:', qaString);
+          }
+        } catch (parseError) {
+          console.error('Error parsing QA JSON string from row:', qaString, parseError);
+        }
+      }
+    }
+
+    // --- Send the final combined array ---
+    console.log(`Sending ${selectedMcqs.length} total questions (${50} MCQs + ${addedQACount} QAs).`);
+    res.status(200).json({ questions: selectedMcqs }); // Send single combined array
+
 
   } catch (error) {
     console.error('Error fetching questions:', error);
@@ -200,75 +225,75 @@ app.get('/questions', async (req, res) => {
 });
 
 // Check if the answer is correct
-app.post('/check-answer', upload.array('images', 10), async (req, res) => {
-  const { question, userAnswer, correctAnswer } = req.body;
+// app.post('/check-answer', upload.array('images', 10), async (req, res) => {
+//   const { question, userAnswer, correctAnswer } = req.body;
   
-  if (!question || !userAnswer) {
-    return res.status(400).send({ error: 'Question and user answer are required' });
-  }
+//   if (!question || !(userAnswer || (req.files && req.files.length > 0) )) {
+//     return res.status(400).send({ error: 'Question and user answer are required' });
+//   }
   
-  try {
-    console.log('Checking answer with images:', req.files?.length || 0);
+//   try {
+//     console.log('Checking answer with images:', req.files?.length || 0);
     
-    // Create the prompt about the question and answer
-    const prompt = `The user was given this question: "${question}"
+//     // Create the prompt about the question and answer
+//     const prompt = `The user was given this question: "${question}"
   
-User's answer: "${userAnswer}"
-Correct answer: "${correctAnswer}"
+// User's answer: "${userAnswer !== undefined || userAnswer !== null ? userAnswer : "undefined"}"
+// Correct answer: "${correctAnswer}"
 
-${req.files && req.files.length > 0 ? 
-  "The user has also provided images to support their answer. Please analyze these images as part of your evaluation." : 
-  ""}
-Evaluate if the user's answer is correct using the following JSON schema:
-{'Correct': boolean, 'Judgement': string}
+// ${req.files && req.files.length > 0 ? 
+//   "The user has also provided images to support their answer. Please analyze these images as part of your evaluation. Even if the user answer is undefined or doesn't exist" : 
+//   ""}
+// Evaluate if the user's answer is correct using the following JSON schema:
+// {'Correct': boolean, 'Judgement': string}
 
-The 'Correct' field should be true if the user's answer is semantically correct, even if the wording is different.
-The 'Judgement' field should provide a brief explanation of why the answer is correct or incorrect.
+// The 'Correct' field should be true if the user's answer is semantically correct, even if the wording is different.
+// The 'Judgement' field should provide a brief explanation of why the answer is correct or incorrect.
 
-Return the result as valid JSON.`;
+// Return the result as valid JSON.`;
 
-    let contentParts = [];
+//     let contentParts = [];
     
     
-    // If there are image files, add them to the content parts
-    if (req.files && req.files.length > 0) {
-      // Add images to the request
-      for (const file of req.files) {
-        const b64 = file.buffer.toString('base64');
-        const imagePart = createPartFromBase64(b64, file.mimetype);
-        contentParts.push(imagePart);
-      }
-    }
+//     // If there are image files, add them to the content parts
+//     if (req.files && req.files.length > 0) {
+//       // Add images to the request
+//       for (const file of req.files) {
+//         const b64 = file.buffer.toString('base64');
+//         const imagePart = createPartFromBase64(b64, file.mimetype);
+//         contentParts.push(imagePart);
+//       }
+//     }
     
-    // Add the text prompt
-    contentParts.push(prompt);
+//     // Add the text prompt
+//     contentParts.push(prompt);
     
-    // Use Gemini with vision if images are provided, otherwise use text-only mode
-    const response = await client.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: createUserContent(contentParts),
-    });
+//     // Use Gemini with vision if images are provided, otherwise use text-only mode
+//     const response = await client.models.generateContent({
+//       model: "gemini-2.0-flash",
+//       contents: createUserContent(contentParts),
+//     });
     
-    console.log('Answer evaluation response:', response.text);
+//     console.log('Answer evaluation response:', response.text);
     
-    // Parse the response to extract the judgment
-    let judgment = { Correct: false, Judgement: "Could not evaluate answer" };
-    try {
-      // Try to extract JSON from the response
-      const jsonMatch = response.text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        judgment = JSON.parse(jsonMatch[0]);
-      }
-    } catch (error) {
-      console.error('Error parsing judgment data:', error);
-    }
+//     // Parse the response to extract the judgment
+//     let judgment = { Correct: false, Judgement: "Could not evaluate answer" };
+//     try {
+//       // Try to extract JSON from the response
+//       const jsonMatch = response.text.match(/\{[\s\S]*\}/);
+//       if (jsonMatch) {
+//         judgment = JSON.parse(jsonMatch[0]);
+//       }
+//     } catch (error) {
+//       console.error('Error parsing judgment data:', error);
+//     }
     
-    res.status(200).send(judgment);
-  } catch (error) {
-    console.error('Error evaluating answer:', error);
-    res.status(500).send({ error: 'Error evaluating answer', details: error.message });
-  }
-});
+//     res.status(200).send(judgment);
+//   } catch (error) {
+//     console.error('Error evaluating answer:', error);
+//     res.status(500).send({ error: 'Error evaluating answer', details: error.message });
+//   }
+// });
   
 
 

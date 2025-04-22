@@ -1,0 +1,110 @@
+.lecturePage {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-darker);
+  color: var(--text-light);
+}
+
+.lectureContent {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.lectureHeader {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+  text-align: center;
+}
+
+.lectureTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  background: linear-gradient(45deg, var(--primary-light), var(--secondary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  animation: gradient 8s ease infinite;
+  background-size: 200% 200%;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  width: 100%;
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  color: var(--danger-color);
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  animation: fadeIn 0.3s ease;
+}
+
+.errorIcon {
+  color: var(--danger-color);
+  margin-bottom: 1rem;
+}
+
+.errorContainer h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.errorContainer p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-light);
+  opacity: 0.9;
+}
+
+.videoPlayerContainer {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  border: 1px solid var(--card-border);
+  transition: all 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .lectureContent {
+    padding: 1rem;
+  }
+  
+  .lectureTitle {
+    font-size: 1.8rem;
+  }
+}

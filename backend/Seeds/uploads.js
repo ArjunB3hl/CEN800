@@ -1,8 +1,15 @@
-/*
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { PDFDocument } from 'pdf-lib'; // Import PDFDocument from pdf-lib
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 // --- PDF Splitting Logic ---
 
 // Ensure the uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = path.join(__dirname, "..",'uploads');
 if (!fs.existsSync(uploadsDir)) {
   console.log(`Uploads directory not found: ${uploadsDir}. Skipping PDF splitting.`);
   // Optionally create it: fs.mkdirSync(uploadsDir);
@@ -62,4 +69,3 @@ if (!fs.existsSync(uploadsDir)) {
     }
   }
 }
-*/

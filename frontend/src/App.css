@@ -14,29 +14,90 @@
   --text-dark: #334155;
   --bg-dark: #1e293b;
   --bg-darker: #0f172a;
-  --card-bg: rgba(255, 255, 255, 0.08);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --border-radius: 12px;
-  --glow-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+  --card-bg: rgba(255, 255, 255, 0.05); /* Slightly more transparent */
+  --card-border: rgba(255, 255, 255, 0.15); /* Slightly more visible border */
+  --border-radius: 16px; /* Slightly larger radius */
+  --glow-shadow: 0 0 25px rgba(124, 58, 237, 0.4); /* Enhanced glow */
+  --neumorphic-light-shadow: -6px -6px 12px rgba(255, 255, 255, 0.08);
+  --neumorphic-dark-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3);
+  --neumorphic-inset-light-shadow: inset -4px -4px 8px rgba(255, 255, 255, 0.06);
+  --neumorphic-inset-dark-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.25);
+  --blur-intensity: 10px; /* Glass blur intensity */
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  background-color: var(--bg-darker); /* Fallback background */
+}
+
+
+
 #root {
-  max-width: 1280px;
+  /* max-width: 1280px; */ /* Remove max-width for full screen */
+  width: 100%;
+  min-height: 100vh; /* Ensure it takes full viewport height */
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0; /* Remove padding, handle inside panels */
   text-align: center;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-light);
+  display: flex; /* Use flex for centering main container */
+  justify-content: center;
+  align-items: center;
 }
+
 
 .App {
   width: 100%;
-  max-width: 800px;
+  /* max-width: 800px; */ /* Remove max-width */
+  height: 100vh; /* Take full viewport height */
   margin: 0 auto;
   position: relative;
+  display: flex; /* Use flex for the main container */
+  overflow: hidden; /* Prevent content overflow issues */
+}
+
+/* Background layer for potential effects (optional if body bg is sufficient) */
+.background-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Behind everything */
+  /* Could add gradients or other effects here */
+}
+
+/* Main container for split layout */
+.main-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 2rem; /* Add padding around the panels */
+  box-sizing: border-box;
+}
+
+
+/* Right Panel Styling (contains the main app content) */
+.right-panel {
+  flex: 2; /* Adjust flex ratio */
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.7); /* Slightly different background */
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  border-radius: var(--border-radius);
+  margin-left: 1rem; /* Space between panels */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  border: 1px solid var(--card-border);
+  overflow-y: auto; /* Allow scrolling */
 }
 
 .App-header {
+  width: 100%; /* Ensure header takes full width of right panel */
+  max-width: 700px; /* Limit content width within the panel */
+  margin: auto; /* Center content vertically and horizontally */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -45,7 +106,7 @@
 
 .title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 2.8rem;
+  font-size: 5.8rem;
   margin-bottom: 0;
   background: linear-gradient(45deg, var(--primary-light), var(--secondary-light));
   -webkit-background-clip: text;
@@ -68,48 +129,52 @@
   }
 }
 
+/* Added styles for button container */
+.button-container {
+  display: flex;
+  justify-content: center; /* Center buttons horizontally */
+  gap: 1rem; /* Space between buttons */
+  margin-top: 1.5rem; /* Space above the buttons */
+}
+
+/* Adjust existing button style if needed, or keep as is */
+.course-link-button {
+  padding: 0.8rem 1.8rem;
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none; /* Remove underline */
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transitions */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  display: inline-block; /* Ensure it behaves like a block for margin/padding */
+}
+
+.course-link-button:hover {
+  background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
+  transform: translateY(-3px); /* Lift effect */
+  box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.1), 5px 5px 10px rgba(0, 0, 0, 0.4), var(--glow-shadow); /* Enhanced hover shadow */
+}
+
+.course-link-button:active {
+  transform: translateY(1px); /* Press effect */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow); /* Inset shadow */
+}
+
 .subtitle {
-  font-size: 1.2rem;
-  color: #a1a1aa;
-  margin-top: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  background: linear-gradient(45deg, var(--secondary-color), var(--secondary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  letter-spacing: -0.5px;
   font-weight: 300;
 }
 
-/* Drop area styles */
-.drop-area {
-  width: 100%;
-  min-height: 200px;
-  border: 2px dashed var(--primary-light);
-  border-radius: var(--border-radius);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background-color: rgba(124, 58, 237, 0.05);
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.1);
-}
-
-.drop-area:hover {
-  background-color: rgba(124, 58, 237, 0.1);
-  transform: translateY(-2px);
-  box-shadow: var(--glow-shadow);
-}
-
-.drop-area.dragging {
-  background-color: rgba(124, 58, 237, 0.15);
-  border-color: var(--primary-color);
-  transform: scale(1.02);
-  box-shadow: var(--glow-shadow);
-}
-
-.drop-icon {
-  margin-bottom: 1rem;
-  color: var(--primary-light);
-  animation: float 3s ease-in-out infinite;
-}
 
 @keyframes float {
   0% {
@@ -123,181 +188,7 @@
   }
 }
 
-/* File list styles */
-.file-list {
-  width: 100%;
-  margin-top: 1rem;
-}
 
-.file-list h3 {
-  text-align: left;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--text-light);
-}
-
-.file-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 300px;
-  overflow-y: auto;
-  border-radius: var(--border-radius);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--card-border);
-  transition: all 0.2s ease;
-}
-
-.file-item:last-child {
-  border-bottom: none;
-}
-
-.file-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  overflow: hidden;
-}
-
-.file-icon, .file-preview {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-light);
-  flex-shrink: 0;
-}
-
-.file-preview {
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.file-details {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  overflow: hidden;
-}
-
-.file-name {
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 300px;
-}
-
-.file-size {
-  font-size: 0.8rem;
-  color: #a1a1aa;
-}
-
-.remove-file {
-  background: none;
-  border: none;
-  color: #a1a1aa;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.remove-file:hover {
-  color: var(--danger-color);
-  background-color: rgba(239, 68, 68, 0.1);
-}
-
-.remove-file:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Upload controls */
-.upload-controls {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.upload-button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.upload-button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--glow-shadow);
-}
-
-.upload-button:disabled {
-  background-color: #64748b;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Circular Progress */
-.progress-container {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 1rem auto;
-}
-
-.circular-progress {
-  position: relative;
-  width: 120px;
-  height: 120px;
-}
-
-.circular-progress svg {
-  width: 120px;
-  height: 120px;
-  transform: rotate(-90deg);
-}
-
-.circular-progress circle {
-  fill: none;
-  stroke-width: 8;
-  stroke-linecap: round;
-  stroke-dasharray: 283; /* π * 2 * r, where r = 45 (radius) */
-}
-
-.circular-progress .bg {
-  stroke: rgba(255, 255, 255, 0.1);
-}
-
-.circular-progress .progress {
-  stroke: var(--primary-light);
-  stroke-dashoffset: calc(283 - (283 * var(--progress-percent)) / 100);
-  transition: stroke-dashoffset 0.3s ease;
-}
 
 .progress-text {
   position: absolute;
@@ -363,10 +254,11 @@
 }
 
 .question-card {
-  background-color: var(--card-bg);
+  background-color: transparent; /* Use panel background */
   border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem 2rem; /* More padding */
+  /* Neumorphic card */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -400,32 +292,42 @@
   align-items: center;
   padding: 1rem;
   border-radius: var(--border-radius);
-  background-color: var(--card-bg);
+  background-color: rgba(255, 255, 255, 0.03); /* Slightly different bg */
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid var(--card-border);
+  border: 1px solid transparent; /* Start with transparent border */
   text-align: left;
+  /* Neumorphic option */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
 }
 
 .option:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: translateX(5px);
+  background-color: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px) translateX(2px); /* Slight lift */
   border-color: var(--primary-color);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35);
 }
 
 .option.selected {
-  background-color: rgba(124, 58, 237, 0.15);
+  background-color: rgba(124, 58, 237, 0.1);
   border-color: var(--primary-color);
+  /* Inset shadow when selected */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
 }
 
 .option.correct {
-  background-color: rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.1);
   border-color: var(--success-color);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
 }
 
 .option.incorrect {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.1);
   border-color: var(--danger-color);
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
 }
 
 .option-letter {
@@ -470,7 +372,8 @@
   transition: all 0.3s ease;
   border: none;
   min-width: 150px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  /* Neumorphic button base */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
 }
 
 .check-answer-button {
@@ -478,17 +381,23 @@
   color: white;
 }
 
-.check-answer-button:hover {
+.check-answer-button:hover:not(:disabled) {
   background-color: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: var(--glow-shadow);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), var(--glow-shadow);
+}
+
+.check-answer-button:active:not(:disabled) {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
 }
 
 .check-answer-button:disabled {
   background-color: #64748b;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow); /* Inset disabled look */
+  opacity: 0.7;
 }
 
 .next-question-button {
@@ -499,7 +408,12 @@
 .next-question-button:hover {
   background-color: #0ca678;
   transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.next-question-button:active {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
 }
 
 /* Quiz Type Toggle */
@@ -514,28 +428,35 @@
 .toggle-button {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--card-border);
-  background-color: var(--card-bg);
+  border: 1px solid transparent; /* Remove border */
+  background-color: transparent; /* Use panel bg */
   color: #a1a1aa;
   border-radius: var(--border-radius);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  /* Neumorphic toggle */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
 }
 
 .toggle-button:hover:not(:disabled) {
-  background-color: rgba(124, 58, 237, 0.1);
+  background-color: rgba(124, 58, 237, 0.05);
   color: var(--text-light);
+  transform: translateY(-1px);
+  box-shadow: -3px -3px 6px rgba(255, 255, 255, 0.1), 3px 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-button.active {
-  background-color: rgba(124, 58, 237, 0.2);
-  border-color: var(--primary-color);
+  background-color: rgba(124, 58, 237, 0.1);
+  border-color: transparent;
   color: var(--text-light);
-  box-shadow: var(--glow-shadow);
+  /* Inset active state */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
 }
 
 .toggle-button:disabled {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -556,8 +477,8 @@
   max-height: 450px;
   padding: 1rem;
   border-radius: var(--border-radius);
-  border: 1px solid var(--primary-color);
-  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent; /* Remove border */
+  background-color: rgba(255, 255, 255, 0.03); /* Slightly different bg */
   color: inherit;
   font-family: inherit;
   font-size: 1rem;
@@ -566,13 +487,15 @@
   box-sizing: border-box;
   overflow-wrap: break-word;
   word-wrap: break-word;
-  box-shadow: 0 0 8px rgba(124, 58, 237, 0.1);
+  /* Neumorphic inset textarea */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
 }
 
 .answer-input:focus {
   outline: none;
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  border-color: transparent;
+  background-color: rgba(255, 255, 255, 0.05); /* Slightly lighter on focus */
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow), 0 0 0 2px rgba(124, 58, 237, 0.2); /* Add focus ring */
 }
 
 .answer-input:disabled {
@@ -629,11 +552,12 @@
   width: 100%;
   margin-top: 2rem;
   padding: 2rem;
-  background-color: var(--card-bg);
+  background-color: transparent; /* Use panel background */
   border-radius: var(--border-radius);
   border: 1px solid var(--card-border);
   animation: fadeIn 0.5s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  /* Neumorphic results card */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
 }
 
 .quiz-results h2 {
@@ -685,13 +609,23 @@
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  /* Neumorphic button base */
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
 }
 
-.reset-quiz-button:hover, .new-files-button:hover {
-  background-color: var(--primary-dark);
+.reset-quiz-button:hover, .new-files-button:hover, .toggle-quiz-type-button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--glow-shadow);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35); /* Consistent hover shadow */
+}
+
+.reset-quiz-button:active, .new-files-button:active, .toggle-quiz-type-button:active {
+  box-shadow: var(--neumorphic-inset-light-shadow), var(--neumorphic-inset-dark-shadow);
+  transform: translateY(1px);
+}
+
+.reset-quiz-button:hover {
+  background-color: var(--primary-dark);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), var(--glow-shadow);
 }
 
 .toggle-quiz-type-button {
@@ -704,13 +638,12 @@
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
 }
 
 .toggle-quiz-type-button:hover {
   background-color: #d97706;
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(245, 158, 11, 0.3);
 }
 
 .new-files-button {
@@ -719,10 +652,42 @@
 
 .new-files-button:hover {
   background-color: #0ca678;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: -4px -4px 8px rgba(255, 255, 255, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 /* Responsive adjustments */
+@media (max-width: 1024px) { /* Adjust breakpoint for split view */
+  .main-container {
+    flex-direction: column; /* Stack panels vertically */
+    padding: 1rem; /* Reduce padding */
+    height: auto; /* Allow height to adjust */
+    min-height: 100vh;
+  }
+
+  .left-panel, .right-panel {
+    flex: 1; /* Let them take available space */
+    margin: 0.5rem 0; /* Adjust margin for vertical stacking */
+    width: 100%; /* Take full width */
+    max-height: none; /* Remove height restrictions */
+  }
+
+  .left-panel {
+    margin-bottom: 1rem; /* Space below left panel */
+    padding: 2rem;
+    min-height: 200px; /* Ensure some height */
+    justify-content: flex-start; /* Align top */
+  }
+
+  .right-panel {
+    padding: 1.5rem;
+  }
+
+  .App {
+    height: auto; /* Allow height to grow */
+    min-height: 100vh;
+  }
+}
+
 @media (max-width: 768px) {
   .file-name {
     max-width: 200px;
@@ -762,5 +727,146 @@
     padding: 0.6rem 1.2rem;
     min-width: 130px;
     font-size: 0.9rem;
+  }
+}
+
+/* Course Content Page Styles */
+.course-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-darker);
+  color: var(--text-light);
+}
+
+.course-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding-top: 220px;
+}
+
+.course-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.course-header h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  background: linear-gradient(45deg, var(--primary-light), var(--secondary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+.course-intro {
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  color: #a1a1aa;
+  line-height: 1.6;
+}
+
+.course-actions {
+  margin-bottom: 2rem;
+}
+
+.course-button {
+  padding: 0.8rem 1.8rem;
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  display: inline-block;
+}
+
+.course-button:hover {
+  background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
+  transform: translateY(-3px);
+  box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.1), 5px 5px 10px rgba(0, 0, 0, 0.4), var(--glow-shadow);
+}
+
+.lectures-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 4rem;
+  margin-top: 2rem;
+}
+
+.lecture-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--neumorphic-light-shadow), var(--neumorphic-dark-shadow);
+  border: 1px solid var(--card-border);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lecture-card:hover {
+  transform: translateY(-5px);
+  box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.1), 5px 5px 10px rgba(0, 0, 0, 0.4), var(--glow-shadow);
+  border-color: var(--primary-color);
+}
+
+.lecture-title {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: var(--text-light);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.lecture-description {
+  color: #a1a1aa;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.lecture-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--primary-light);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.lecture-link:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateX(5px);
+}
+
+@media (max-width: 768px) {
+  .lectures-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .course-header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .course-intro {
+    font-size: 1rem;
   }
 }
